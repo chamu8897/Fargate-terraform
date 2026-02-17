@@ -29,6 +29,14 @@ resource "aws_subnet" "private" {
   }
 }
 
+resource "aws_subnet" "private" {
+  count             = 2
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.private_subnets[count.index]
+  availability_zone = element(data.aws_availability_zones.available.names, count.index)
+}
+
+
 # Internet Gateway
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id

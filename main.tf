@@ -183,7 +183,10 @@ resource "aws_ecs_service" "app_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = aws_subnet.private[*].id
+    subnets         = [
+      aws_subnet.private_b.id,
+      aws_subnet.private_c.id
+    ]
     security_groups = [aws_security_group.ecs_sg.id]
     assign_public_ip = false
   }
@@ -213,5 +216,12 @@ resource "aws_db_instance" "rds" {
   password                = var.db_password
   skip_final_snapshot     = true
   vpc_security_group_ids  = [aws_security_group.ecs_sg.id]
-  db_subnet_group_name    = aws_db_subnet_group.rds_subnet.id
+  resource "aws_db_subnet_group" "rds_subnet" {
+  name       = "rds-subnet-group"
+  subnet_ids = [
+    aws_subnet.private_b.id,
+    aws_subnet.private_c.id
+  ]
+}
+
 }

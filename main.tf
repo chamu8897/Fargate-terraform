@@ -113,32 +113,6 @@ resource "aws_s3_bucket" "app_bucket" {
   bucket = "my-app-bucket-example"
 }
 
-# ---------------- ECR ----------------
-resource "aws_ecr_repository" "repo" {
-  name = var.ecr_repo_name
-}
-
-resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "ecsTaskExecutionRole"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Action = "sts:AssumeRole",
-      Principal = {
-        Service = "ecs-tasks.amazonaws.com"
-      },
-      Effect = "Allow"
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
-
 # ---------------- ECS Cluster ----------------
 resource "aws_ecs_cluster" "fargate" {
   name = "ecs-fargate-cluster2"
@@ -174,7 +148,7 @@ resource "aws_lb" "alb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.ecs_sg.id]
-  subnets            = aws_subnet.public[*].id
+  subnets            = ["subnet-0305924722d8172a2" , "subnet-02432831f7c15b591"]
 }
 
 resource "aws_lb_target_group" "tg" {

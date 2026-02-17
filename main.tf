@@ -200,7 +200,7 @@ resource "aws_ecs_service" "app_service" {
   depends_on = [aws_lb_listener.listener]
 }
 
-RDS Subnet Group (top-level resource)
+## RDS Subnet Group (top-level resource)
 resource "aws_db_subnet_group" "rds_subnet" {
   name       = "rds-subnet-group"
   subnet_ids = [

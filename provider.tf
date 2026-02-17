@@ -4,10 +4,10 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket         = var.state_bucket
-    key            = "terraform/state.tfstate"
-    region         = var.region
-    dynamodb_table = var.lock_table
+    bucket         = "chamu2-terraform-state-bucket"
+    key            = "vpc/terraform.tfstate"
+    region         = "eu-west-1"
+    dynamodb_table = "terraform-locks"
     encrypt        = true
   }
 }

@@ -200,12 +200,16 @@ resource "aws_ecs_service" "app_service" {
   depends_on = [aws_lb_listener.listener]
 }
 
-# ---------------- RDS MySQL ----------------
+RDS Subnet Group (top-level resource)
 resource "aws_db_subnet_group" "rds_subnet" {
   name       = "rds-subnet-group"
-  subnet_ids = aws_subnet.private[*].id
+  subnet_ids = [
+    aws_subnet.private_b.id,
+    aws_subnet.private_c.id
+  ]
 }
 
+# RDS Instance (separate resource, references subnet group)
 resource "aws_db_instance" "rds" {
   allocated_storage       = 20
   engine                  = "mysql"
@@ -216,12 +220,5 @@ resource "aws_db_instance" "rds" {
   password                = var.db_password
   skip_final_snapshot     = true
   vpc_security_group_ids  = [aws_security_group.ecs_sg.id]
-  resource "aws_db_subnet_group" "rds_subnet" {
-  name       = "rds-subnet-group"
-  subnet_ids = [
-    aws_subnet.private_b.id,
-    aws_subnet.private_c.id
-  ]
-}
-
+  db_subnet_group_name    = aws_db_subnet_group.rds_subnet.name
 }

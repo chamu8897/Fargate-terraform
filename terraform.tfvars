@@ -2,3 +2,9 @@ aws_region          = "eu-west-1"
 vpc_cidr            = "10.0.0.0/16"
 public_subnet_cidr  = "10.0.1.0/24"
 private_subnet_cidr = "10.0.2.0/24"
+
+db_username     = "admin"
+db_password     = "SuperSecret123!"
+
+ecr_repo_name       = "chamu-app-repo"
+container_image_tag = "latest"

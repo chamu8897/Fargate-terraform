@@ -126,3 +126,106 @@ resource "aws_lb" "alb" {
 resource "aws_s3_bucket" "app_bucket" {
   bucket = "my-app-bucket-example"
 }
+
+# ---------------- ECR ----------------
+resource "aws_ecr_repository" "repo" {
+  name = var.ecr_repo_name
+}
+
+# ---------------- ECS Cluster ----------------
+resource "aws_ecs_cluster" "fargate" {
+  name = "ecs-fargate-cluster"
+}
+
+# ---------------- Task Definition ----------------
+resource "aws_ecs_task_definition" "app" {
+  family                   = "my-app-task"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+
+  container_definitions = jsonencode([
+    {
+      name      = "my-app-container"
+      image     = "${111225938018.dkr.ecr.eu-west-1.amazonaws.com/chamu-app-repo:latest}"
+      essential = true
+      portMappings = [
+        {
+          containerPort = 80
+          hostPort      = 80
+        }
+      ]
+    }
+  ])
+}
+
+# ---------------- ALB ----------------
+resource "aws_lb" "alb" {
+  name               = "ecs-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.ecs_sg.id]
+  subnets            = aws_subnet.public[*].id
+}
+
+resource "aws_lb_target_group" "tg" {
+  name     = "ecs-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main.id
+  target_type = "ip"
+}
+
+resource "aws_lb_listener" "listener" {
+  load_balancer_arn = aws_lb.alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.tg.arn
+  }
+}
+
+# ---------------- ECS Service ----------------
+resource "aws_ecs_service" "app_service" {
+  name            = "my-app-service"
+  cluster         = aws_ecs_cluster.fargate.id
+  task_definition = aws_ecs_task_definition.app.arn
+  desired_count   = 2
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets         = aws_subnet.private[*].id
+    security_groups = [aws_security_group.ecs_sg.id]
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.tg.arn
+    container_name   = "my-app-container"
+    container_port   = 80
+  }
+
+  depends_on = [aws_lb_listener.listener]
+}
+
+# ---------------- RDS MySQL ----------------
+resource "aws_db_subnet_group" "rds_subnet" {
+  name       = "rds-subnet-group"
+  subnet_ids = aws_subnet.private[*].id
+}
+
+resource "aws_db_instance" "rds" {
+  allocated_storage    = 20
+  engine               = "mysql"
+  engine_version       = "8.0"
+  instance_class       = "db.t3.micro"
+  name                 = "mydb"
+  username             = var.db_username
+  password             = var.db_password
+  skip_final_snapshot  = true
+  vpc_security_group_ids = [aws_security_group.ecs_sg.id]
+  db_subnet_group_name   = aws_db_subnet_group.rds_subnet.id
+}

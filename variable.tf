@@ -17,14 +17,3 @@ variable "private_subnet_cidr" {
   description = "CIDR block for the private subnet"
   type        = string
 }
-
-variable "db_username" {
-  description = "RDS master username"
-  type        = string
-}
-
-variable "db_password" {
-  description = "RDS master password"
-  type        = string
-  sensitive   = true
-}

@@ -108,20 +108,6 @@ resource "aws_security_group" "ecs_sg" {
   }
 }
 
-# ECS Cluster
-resource "aws_ecs_cluster" "fargate" {
-  name = "ecs-fargate-cluster"
-}
-
-# Application Load Balancer
-resource "aws_lb" "alb" {
-  name               = "ecs-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.ecs_sg.id]
-  subnets            = aws_subnet.public[*].id
-}
-
 # S3 Bucket
 resource "aws_s3_bucket" "app_bucket" {
   bucket = "my-app-bucket-example"
@@ -134,7 +120,7 @@ resource "aws_ecr_repository" "repo" {
 
 # ---------------- ECS Cluster ----------------
 resource "aws_ecs_cluster" "fargate" {
-  name = "ecs-fargate-cluster"
+  name = "ecs-fargate-cluster2"
 }
 
 # ---------------- Task Definition ----------------
@@ -148,7 +134,7 @@ resource "aws_ecs_task_definition" "app" {
   container_definitions = jsonencode([
     {
       name      = "my-app-container"
-      image     = "${111225938018.dkr.ecr.eu-west-1.amazonaws.com/chamu-app-repo:latest}"
+      image     = "111225938018.dkr.ecr.eu-west-1.amazonaws.com/chamu-app-repo:latest"
       essential = true
       portMappings = [
         {
